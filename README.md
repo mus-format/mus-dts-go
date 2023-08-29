@@ -4,7 +4,7 @@ mus-dts-go provides DTM (**D**ata **T**ype **M**etadata) support for the
 can encode/decode DTM + data itself.
 
 You can find DTM in the MUS format 
-[specification](https://github.com/mus-format/specification#Data-Type-Metadata).
+[specification](https://github.com/mus-format/specification#data-type-metadata-(DTM)).
 
 # Tests
 Test coverage is 100%.
