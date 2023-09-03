@@ -56,5 +56,4 @@ func main() {
   assert.EqualError(err, dts.ErrWrongDTM)
 }
 ```
-
 You can find the full code at [mus-examples-go](https://github.com/mus-format/mus-examples-go/tree/main/dts).
