@@ -1,5 +1,5 @@
 # mus-dts-go
-mus-dts-go provides DTM (**D**ata **T**ype **M**etadata) support for the 
+mus-dts-go provides DTM (Data Type Metadata) support for the 
 [mus-go](https://github.com/mus-format/mus-go) serializer. With mus-dts-go we 
 can encode/decode DTM + data itself.
 

@@ -29,7 +29,7 @@ func (dts DTS[T]) DTM() com.DTM {
 
 // MarshalMUS marshals DTM and data to the MUS format.
 func (dts DTS[T]) MarshalMUS(t T, bs []byte) (n int) {
-	n = MarshalDTMUS(dts.dtm, bs)
+	n = MarshalDTM(dts.dtm, bs)
 	n += dts.m.MarshalMUS(t, bs[n:])
 	return
 }
@@ -38,7 +38,7 @@ func (dts DTS[T]) MarshalMUS(t T, bs []byte) (n int) {
 //
 // Returns ErrWrongDTM if DTM from bs is different.
 func (dts DTS[T]) UnmarshalMUS(bs []byte) (t T, n int, err error) {
-	dtm, n, err := UnmarshalDTMUS(bs)
+	dtm, n, err := UnmarshalDTM(bs)
 	if err != nil {
 		return
 	}
@@ -47,18 +47,18 @@ func (dts DTS[T]) UnmarshalMUS(bs []byte) (t T, n int, err error) {
 		return
 	}
 	var n1 int
-	t, n1, err = dts.UnmarshalDataMUS(bs[n:])
+	t, n1, err = dts.UnmarshalData(bs[n:])
 	n += n1
 	return
 }
 
 // SizeMUS calculates the DTM and data size in the MUS format.
 func (dts DTS[T]) SizeMUS(t T) (size int) {
-	size = SizeDTMUS(dts.dtm)
+	size = SizeDTM(dts.dtm)
 	return size + dts.s.SizeMUS(t)
 }
 
 // UnmarshalMUS unmarshals data without DTM from the MUS format.
-func (dts DTS[T]) UnmarshalDataMUS(bs []byte) (t T, n int, err error) {
+func (dts DTS[T]) UnmarshalData(bs []byte) (t T, n int, err error) {
 	return dts.u.UnmarshalMUS(bs)
 }
