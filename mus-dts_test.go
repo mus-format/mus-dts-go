@@ -19,7 +19,7 @@ type Foo struct {
 
 func MarshalFooMUS(foo Foo, bs []byte) (n int) {
 	n = varint.MarshalInt(foo.num, bs)
-	n += ord.MarshalString(foo.str, bs)
+	n += ord.MarshalString(foo.str, nil, bs[n:])
 	return
 }
 
@@ -29,14 +29,14 @@ func UnmarshalFooMUS(bs []byte) (foo Foo, n int, err error) {
 		return
 	}
 	var n1 int
-	foo.str, n1, err = ord.UnmarshalString(bs)
+	foo.str, n1, err = ord.UnmarshalString(nil, bs[n:])
 	n += n1
 	return
 }
 
 func SizeFooMUS(foo Foo) (size int) {
 	size = varint.SizeInt(foo.num)
-	return size + ord.SizeString(foo.str)
+	return size + ord.SizeString(foo.str, nil)
 }
 
 func TestDTS(t *testing.T) {
