@@ -6,11 +6,11 @@ import (
 )
 
 func MarshalDTM(dtm com.DTM, bs []byte) (n int) {
-	return varint.MarshalPositiveInt(int(dtm), bs)
+	return varint.MarshalInt(int(dtm), bs)
 }
 
 func UnmarshalDTM(bs []byte) (dtm com.DTM, n int, err error) {
-	num, n, err := varint.UnmarshalPositiveInt(bs)
+	num, n, err := varint.UnmarshalInt(bs)
 	if err != nil {
 		return
 	}
@@ -19,5 +19,5 @@ func UnmarshalDTM(bs []byte) (dtm com.DTM, n int, err error) {
 }
 
 func SizeDTM(dtm com.DTM) (size int) {
-	return varint.SizePositiveInt(int(dtm))
+	return varint.SizeInt(int(dtm))
 }
