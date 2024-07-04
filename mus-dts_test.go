@@ -17,13 +17,13 @@ type Foo struct {
 	str string
 }
 
-func MarshalFooMUS(foo Foo, bs []byte) (n int) {
+func MarshalFoo(foo Foo, bs []byte) (n int) {
 	n = varint.MarshalInt(foo.num, bs)
 	n += ord.MarshalString(foo.str, nil, bs[n:])
 	return
 }
 
-func UnmarshalFooMUS(bs []byte) (foo Foo, n int, err error) {
+func UnmarshalFoo(bs []byte) (foo Foo, n int, err error) {
 	foo.num, n, err = varint.UnmarshalInt(bs)
 	if err != nil {
 		return
@@ -34,29 +34,29 @@ func UnmarshalFooMUS(bs []byte) (foo Foo, n int, err error) {
 	return
 }
 
-func SizeFooMUS(foo Foo) (size int) {
+func SizeFoo(foo Foo) (size int) {
 	size = varint.SizeInt(foo.num)
 	return size + ord.SizeString(foo.str, nil)
 }
 
 func TestDTS(t *testing.T) {
 
-	t.Run("MarshalMUS, UnmarshalMUS, SizeMUS methods should work correctly",
+	t.Run("Marshal, Unmarshal, Size methods should work correctly",
 		func(t *testing.T) {
 			var (
 				foo    = Foo{num: 11, str: "hello world"}
 				fooDTS = New[Foo](FooDTM,
-					mus.MarshallerFn[Foo](MarshalFooMUS),
-					mus.UnmarshallerFn[Foo](UnmarshalFooMUS),
-					mus.SizerFn[Foo](SizeFooMUS),
+					mus.MarshallerFn[Foo](MarshalFoo),
+					mus.UnmarshallerFn[Foo](UnmarshalFoo),
+					mus.SizerFn[Foo](SizeFoo),
 				)
-				bs = make([]byte, fooDTS.SizeMUS(foo))
+				bs = make([]byte, fooDTS.Size(foo))
 			)
-			n := fooDTS.MarshalMUS(foo, bs)
+			n := fooDTS.Marshal(foo, bs)
 			if n != len(bs) {
 				t.Fatalf("unexpected n, want '%v' actual '%v'", len(bs), n)
 			}
-			afoo, n, err := fooDTS.UnmarshalMUS(bs)
+			afoo, n, err := fooDTS.Unmarshal(bs)
 			if err != nil {
 				t.Errorf("unexpected error, want '%v' actual '%v'", nil, err)
 			}
@@ -68,19 +68,19 @@ func TestDTS(t *testing.T) {
 			}
 		})
 
-	t.Run("MarshalMUS, UnmarshalDTM, UnmarshalData, SizeMUS methods should work correctly",
+	t.Run("Marshal, UnmarshalDTM, UnmarshalData, Size methods should work correctly",
 		func(t *testing.T) {
 			var (
 				wantDTSize = 1
 				foo        = Foo{num: 11, str: "hello world"}
 				fooDTS     = New[Foo](FooDTM,
-					mus.MarshallerFn[Foo](MarshalFooMUS),
-					mus.UnmarshallerFn[Foo](UnmarshalFooMUS),
-					mus.SizerFn[Foo](SizeFooMUS),
+					mus.MarshallerFn[Foo](MarshalFoo),
+					mus.UnmarshallerFn[Foo](UnmarshalFoo),
+					mus.SizerFn[Foo](SizeFoo),
 				)
-				bs = make([]byte, fooDTS.SizeMUS(foo))
+				bs = make([]byte, fooDTS.Size(foo))
 			)
-			n := fooDTS.MarshalMUS(foo, bs)
+			n := fooDTS.Marshal(foo, bs)
 			if n != len(bs) {
 				t.Fatalf("unexpected n, want '%v' actual '%v'", len(bs), n)
 			}
@@ -116,13 +116,13 @@ func TestDTS(t *testing.T) {
 		}
 	})
 
-	t.Run("UnamrshalMUS should fail with ErrWrongDTM, if meets another DTM",
+	t.Run("Unamrshal should fail with ErrWrongDTM, if meets another DTM",
 		func(t *testing.T) {
 			var (
 				wantDTSize  = 1
 				bs          = []byte{byte(FooDTM) + 3}
 				fooDTS      = New[Foo](FooDTM, nil, nil, nil)
-				foo, n, err = fooDTS.UnmarshalMUS(bs)
+				foo, n, err = fooDTS.Unmarshal(bs)
 			)
 			if err != ErrWrongDTM {
 				t.Errorf("unexpected error, want '%v' actual '%v'", ErrWrongDTM, err)
@@ -135,12 +135,12 @@ func TestDTS(t *testing.T) {
 			}
 		})
 
-	t.Run("If UnmarshalDTM fails with an error, UnmarshalMUS should return it",
+	t.Run("If UnmarshalDTM fails with an error, Unmarshal should return it",
 		func(t *testing.T) {
 			var (
 				bs          = []byte{}
 				fooDTS      = New[Foo](FooDTM, nil, nil, nil)
-				foo, n, err = fooDTS.UnmarshalMUS(bs)
+				foo, n, err = fooDTS.Unmarshal(bs)
 			)
 			if err != mus.ErrTooSmallByteSlice {
 				t.Errorf("unexpected error, want '%v' actual '%v'",

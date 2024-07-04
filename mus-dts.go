@@ -27,17 +27,17 @@ func (dts DTS[T]) DTM() com.DTM {
 	return dts.dtm
 }
 
-// MarshalMUS marshals DTM + data.
-func (dts DTS[T]) MarshalMUS(t T, bs []byte) (n int) {
+// Marshal marshals DTM + data.
+func (dts DTS[T]) Marshal(t T, bs []byte) (n int) {
 	n = MarshalDTM(dts.dtm, bs)
-	n += dts.m.MarshalMUS(t, bs[n:])
+	n += dts.m.Marshal(t, bs[n:])
 	return
 }
 
-// UnmarshalMUS unmarshals DTM + data.
+// Unmarshal unmarshals DTM + data.
 //
 // Returns ErrWrongDTM if the unmarshalled DTM differs from the dts.DTM().
-func (dts DTS[T]) UnmarshalMUS(bs []byte) (t T, n int, err error) {
+func (dts DTS[T]) Unmarshal(bs []byte) (t T, n int, err error) {
 	dtm, n, err := UnmarshalDTM(bs)
 	if err != nil {
 		return
@@ -52,13 +52,13 @@ func (dts DTS[T]) UnmarshalMUS(bs []byte) (t T, n int, err error) {
 	return
 }
 
-// SizeMUS calculates the size of the DTM + data.
-func (dts DTS[T]) SizeMUS(t T) (size int) {
+// Size calculates the size of the DTM + data.
+func (dts DTS[T]) Size(t T) (size int) {
 	size = SizeDTM(dts.dtm)
-	return size + dts.s.SizeMUS(t)
+	return size + dts.s.Size(t)
 }
 
 // UnmarshalData unmarshals only data.
 func (dts DTS[T]) UnmarshalData(bs []byte) (t T, n int, err error) {
-	return dts.u.UnmarshalMUS(bs)
+	return dts.u.Unmarshal(bs)
 }
