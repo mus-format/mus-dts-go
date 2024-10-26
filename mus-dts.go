@@ -7,8 +7,10 @@ import (
 
 // New creates a new DTS.
 func New[T any](dtm com.DTM, m mus.Marshaller[T], u mus.Unmarshaller[T],
-	s mus.Sizer[T]) DTS[T] {
-	return DTS[T]{dtm, m, u, s}
+	s mus.Sizer[T],
+	sk mus.Skipper,
+) DTS[T] {
+	return DTS[T]{dtm, m, u, s, sk}
 }
 
 // DTS provides data type metadata (DTM) support for the mus-go serializer. It
@@ -20,45 +22,61 @@ type DTS[T any] struct {
 	m   mus.Marshaller[T]
 	u   mus.Unmarshaller[T]
 	s   mus.Sizer[T]
+	sk  mus.Skipper
 }
 
 // DTM returns the value with which DTS was initialized.
-func (dts DTS[T]) DTM() com.DTM {
-	return dts.dtm
+func (d DTS[T]) DTM() com.DTM {
+	return d.dtm
 }
 
 // Marshal marshals DTM + data.
-func (dts DTS[T]) Marshal(t T, bs []byte) (n int) {
-	n = MarshalDTM(dts.dtm, bs)
-	n += dts.m.Marshal(t, bs[n:])
+func (d DTS[T]) Marshal(t T, bs []byte) (n int) {
+	n = MarshalDTM(d.dtm, bs)
+	n += d.m.Marshal(t, bs[n:])
 	return
 }
 
 // Unmarshal unmarshals DTM + data.
 //
-// Returns ErrWrongDTM if the unmarshalled DTM differs from the dts.DTM().
-func (dts DTS[T]) Unmarshal(bs []byte) (t T, n int, err error) {
+// Returns ErrWrongDTM if the unmarshalled DTM differs from the d.DTM().
+func (d DTS[T]) Unmarshal(bs []byte) (t T, n int, err error) {
 	dtm, n, err := UnmarshalDTM(bs)
 	if err != nil {
 		return
 	}
-	if dtm != dts.dtm {
+	if dtm != d.dtm {
 		err = ErrWrongDTM
 		return
 	}
 	var n1 int
-	t, n1, err = dts.UnmarshalData(bs[n:])
+	t, n1, err = d.UnmarshalData(bs[n:])
 	n += n1
 	return
 }
 
 // Size calculates the size of the DTM + data.
-func (dts DTS[T]) Size(t T) (size int) {
-	size = SizeDTM(dts.dtm)
-	return size + dts.s.Size(t)
+func (d DTS[T]) Size(t T) (size int) {
+	size = SizeDTM(d.dtm)
+	return size + d.s.Size(t)
+}
+
+func (d DTS[T]) Skip(bs []byte) (n int, err error) {
+	n, err = SkipDTM(bs)
+	if err != nil {
+		return
+	}
+	var n1 int
+	n1, err = d.sk.Skip(bs[n:])
+	n += n1
+	return
 }
 
 // UnmarshalData unmarshals only data.
-func (dts DTS[T]) UnmarshalData(bs []byte) (t T, n int, err error) {
-	return dts.u.Unmarshal(bs)
+func (d DTS[T]) UnmarshalData(bs []byte) (t T, n int, err error) {
+	return d.u.Unmarshal(bs)
+}
+
+func (d DTS[T]) SkipData(bs []byte) (n int, err error) {
+	return d.sk.Skip(bs)
 }

@@ -39,9 +39,20 @@ func SizeFoo(foo Foo) (size int) {
 	return size + ord.SizeString(foo.str, nil)
 }
 
+func SkipFoo(bs []byte) (n int, err error) {
+	n, err = varint.SkipInt(bs)
+	if err != nil {
+		return
+	}
+	var n1 int
+	n1, err = ord.SkipString(nil, bs[n:])
+	n += n1
+	return
+}
+
 func TestDTS(t *testing.T) {
 
-	t.Run("Marshal, Unmarshal, Size methods should work correctly",
+	t.Run("Marshal, Unmarshal, Size, Skip methods should work correctly",
 		func(t *testing.T) {
 			var (
 				foo    = Foo{num: 11, str: "hello world"}
@@ -49,6 +60,7 @@ func TestDTS(t *testing.T) {
 					mus.MarshallerFn[Foo](MarshalFoo),
 					mus.UnmarshallerFn[Foo](UnmarshalFoo),
 					mus.SizerFn[Foo](SizeFoo),
+					mus.SkipperFn(SkipFoo),
 				)
 				bs = make([]byte, fooDTS.Size(foo))
 			)
@@ -66,9 +78,17 @@ func TestDTS(t *testing.T) {
 			if !reflect.DeepEqual(afoo, foo) {
 				t.Errorf("unexpected afoo, want '%v' actual '%v'", foo, afoo)
 			}
+			n1, err := fooDTS.Skip(bs)
+			if err != nil {
+				t.Errorf("unexpected error, want '%v' actual '%v'", nil, err)
+			}
+			if n1 != n {
+				t.Errorf("unexpected n1, want '%v' actual '%v'", n, n1)
+			}
+
 		})
 
-	t.Run("Marshal, UnmarshalDTM, UnmarshalData, Size methods should work correctly",
+	t.Run("Marshal, UnmarshalDTM, UnmarshalData, Size, SkipData methods should work correctly",
 		func(t *testing.T) {
 			var (
 				wantDTSize = 1
@@ -77,6 +97,7 @@ func TestDTS(t *testing.T) {
 					mus.MarshallerFn[Foo](MarshalFoo),
 					mus.UnmarshallerFn[Foo](UnmarshalFoo),
 					mus.SizerFn[Foo](SizeFoo),
+					mus.SkipperFn(SkipFoo),
 				)
 				bs = make([]byte, fooDTS.Size(foo))
 			)
@@ -94,21 +115,28 @@ func TestDTS(t *testing.T) {
 			if dtm != FooDTM {
 				t.Errorf("unexpected dtm, want '%v' actual '%v'", FooDTM, dtm)
 			}
-			afoo, n, err := fooDTS.UnmarshalData(bs[n:])
+			afoo, n1, err := fooDTS.UnmarshalData(bs[n:])
 			if err != nil {
 				t.Errorf("unexpected error, want '%v' actual '%v'", nil, err)
 			}
-			if n != len(bs)-wantDTSize {
-				t.Errorf("unexpected n, want '%v' actual '%v'", len(bs), n)
+			if n1 != len(bs)-wantDTSize {
+				t.Errorf("unexpected n, want '%v' actual '%v'", len(bs), n1)
 			}
 			if !reflect.DeepEqual(afoo, foo) {
 				t.Errorf("unexpected afoo, want '%v' actual '%v'", foo, afoo)
+			}
+			n1, err = fooDTS.SkipData(bs[n:])
+			if err != nil {
+				t.Errorf("unexpected error, want '%v' actual '%v'", nil, err)
+			}
+			if n1 != len(bs)-wantDTSize {
+				t.Errorf("unexpected n, want '%v' actual '%v'", len(bs), n1)
 			}
 		})
 
 	t.Run("DTM method should return correct DTM", func(t *testing.T) {
 		var (
-			fooDTS = New[Foo](FooDTM, nil, nil, nil)
+			fooDTS = New[Foo](FooDTM, nil, nil, nil, nil)
 			dtm    = fooDTS.DTM()
 		)
 		if dtm != FooDTM {
@@ -121,7 +149,7 @@ func TestDTS(t *testing.T) {
 			var (
 				wantDTSize  = 1
 				bs          = []byte{byte(FooDTM) + 3}
-				fooDTS      = New[Foo](FooDTM, nil, nil, nil)
+				fooDTS      = New[Foo](FooDTM, nil, nil, nil, nil)
 				foo, n, err = fooDTS.Unmarshal(bs)
 			)
 			if err != ErrWrongDTM {
@@ -139,7 +167,7 @@ func TestDTS(t *testing.T) {
 		func(t *testing.T) {
 			var (
 				bs          = []byte{}
-				fooDTS      = New[Foo](FooDTM, nil, nil, nil)
+				fooDTS      = New[Foo](FooDTM, nil, nil, nil, nil)
 				foo, n, err = fooDTS.Unmarshal(bs)
 			)
 			if err != mus.ErrTooSmallByteSlice {
@@ -155,7 +183,24 @@ func TestDTS(t *testing.T) {
 			}
 		})
 
-	t.Run("If varint.UnmarshalInt fails with an error, UnmarshalDTM should return it",
+	t.Run("If SkipDTM fails with an error, Skip should return it",
+		func(t *testing.T) {
+			var (
+				bs     = []byte{}
+				fooDTS = New[Foo](FooDTM, nil, nil, nil, nil)
+				n, err = fooDTS.Skip(bs)
+			)
+			if err != mus.ErrTooSmallByteSlice {
+				t.Errorf("unexpected error, want '%v' actual '%v'",
+					mus.ErrTooSmallByteSlice,
+					err)
+			}
+			if n != 0 {
+				t.Errorf("unexpected n, want '%v' actual '%v'", 0, n)
+			}
+		})
+
+	t.Run("If varint.UnmarshalPositiveInt fails with an error, UnmarshalDTM should return it",
 		func(t *testing.T) {
 			var (
 				bs          = []byte{}

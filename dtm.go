@@ -21,3 +21,7 @@ func UnmarshalDTM(bs []byte) (dtm com.DTM, n int, err error) {
 func SizeDTM(dtm com.DTM) (size int) {
 	return varint.SizePositiveInt(int(dtm))
 }
+
+func SkipDTM(bs []byte) (n int, err error) {
+	return varint.SkipPositiveInt(bs)
+}
