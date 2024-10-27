@@ -1,12 +1,14 @@
 # mus-dts-go
-DTSs (Data Type Metadata Support) are useful when there is a need to deserialize
-data, but we don't know in advance what type it is. For example, it could be 
-`Foo` or `Bar` (or it could be just different versions of the same data, like 
-`FooV1` or `FooV2`), we just don't know..., but want to handle both of these 
-cases.
+mus-dts-go provides DTM support for the mus-go serializer. It allows to create
+DTS (DTM Support) for a type.
 
-DTS encode/decode DTM (Data Type Metadata) + data itself. Thanks to DTM, we can
-distinguish one type of data from another, let's see how:
+DTSs are useful when there is a need to deserialize data, but we don't know in 
+advance what type it is. For example, it could be `Foo` or `Bar` (or it could be
+just different versions of the same data, like `FooV1` or `FooV2`), we just 
+don't know..., but want to handle both of these cases.
+
+DTS encode/decode DTM (which is just a number) + data itself. Thanks to DTM, we 
+can distinguish one type of data from another, let's see how:
 ```go
 package main
 
@@ -96,6 +98,7 @@ func randomData() (bs []byte) {
   return
 }
 ```
+A full example can be found at [mus-examples-go](https://github.com/mus-format/mus-examples-go/tree/main/dts)
 
 # Tests
 Test coverage is 100%.
