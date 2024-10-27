@@ -88,7 +88,7 @@ func TestDTS(t *testing.T) {
 
 		})
 
-	t.Run("Marshal, UnmarshalDTM, UnmarshalData, Size, SkipData methods should work correctly",
+	t.Run("Marshal, UnmarshalDTM, UnmarshalData, Size, SkipDTM, SkipData methods should work correctly",
 		func(t *testing.T) {
 			var (
 				wantDTSize = 1
@@ -124,6 +124,11 @@ func TestDTS(t *testing.T) {
 			}
 			if !reflect.DeepEqual(afoo, foo) {
 				t.Errorf("unexpected afoo, want '%v' actual '%v'", foo, afoo)
+			}
+			fooDTS.Marshal(foo, bs)
+			n, err = SkipDTM(bs)
+			if err != nil {
+				t.Errorf("unexpected error, want '%v' actual '%v'", nil, err)
 			}
 			n1, err = fooDTS.SkipData(bs[n:])
 			if err != nil {
@@ -163,6 +168,22 @@ func TestDTS(t *testing.T) {
 			}
 		})
 
+	t.Run("Skip should fail with ErrWrongDTM, if meets another DTM",
+		func(t *testing.T) {
+			var (
+				wantDTSize = 1
+				bs         = []byte{byte(FooDTM) + 3}
+				fooDTS     = New[Foo](FooDTM, nil, nil, nil, nil)
+				n, err     = fooDTS.Skip(bs)
+			)
+			if err != ErrWrongDTM {
+				t.Errorf("unexpected error, want '%v' actual '%v'", ErrWrongDTM, err)
+			}
+			if n != wantDTSize {
+				t.Errorf("unexpected n, want '%v' actual '%v'", wantDTSize, n)
+			}
+		})
+
 	t.Run("If UnmarshalDTM fails with an error, Unmarshal should return it",
 		func(t *testing.T) {
 			var (
@@ -183,7 +204,7 @@ func TestDTS(t *testing.T) {
 			}
 		})
 
-	t.Run("If SkipDTM fails with an error, Skip should return it",
+	t.Run("If UnmarshalDTM fails with an error, Skip should return it",
 		func(t *testing.T) {
 			var (
 				bs     = []byte{}

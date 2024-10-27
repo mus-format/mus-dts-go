@@ -61,9 +61,16 @@ func (d DTS[T]) Size(t T) (size int) {
 	return size + d.s.Size(t)
 }
 
+// Skip skips DTM + data.
+//
+// Returns ErrWrongDTM if the unmarshalled DTM differs from the d.DTM().
 func (d DTS[T]) Skip(bs []byte) (n int, err error) {
-	n, err = SkipDTM(bs)
+	dtm, n, err := UnmarshalDTM(bs)
 	if err != nil {
+		return
+	}
+	if dtm != d.dtm {
+		err = ErrWrongDTM
 		return
 	}
 	var n1 int
@@ -77,6 +84,7 @@ func (d DTS[T]) UnmarshalData(bs []byte) (t T, n int, err error) {
 	return d.u.Unmarshal(bs)
 }
 
+// SkipData skips only data.
 func (d DTS[T]) SkipData(bs []byte) (n int, err error) {
 	return d.sk.Skip(bs)
 }
