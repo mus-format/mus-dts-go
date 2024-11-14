@@ -5,7 +5,7 @@ DTS (DTM Support) for a type.
 DTSs are useful when there is a need to deserialize data, but we don't know in 
 advance what type it is. For example, it could be `Foo` or `Bar` (or it could be
 just different versions of the same data, like `FooV1` or `FooV2`), we just 
-don't know..., but want to handle both of these cases.
+don't know, but want to handle both of these cases.
 
 DTS encode/decode DTM (which is just a number) + data itself. Thanks to DTM, we 
 can distinguish one type of data from another, let's see how:
