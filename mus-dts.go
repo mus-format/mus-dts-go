@@ -14,9 +14,10 @@ func New[T any](dtm com.DTM, m mus.Marshaller[T], u mus.Unmarshaller[T],
 }
 
 // DTS provides data type metadata (DTM) support for the mus-go serializer. It
-// helps to encode DTM + data.
+// helps to encode/decode DTM + data.
 //
-// Implements mus.Marshaller, mus.Unmarshaller and mus.Sizer interfaces.
+// Implements mus.Marshaller, mus.Unmarshaller, mus.Sizer and mus.Skipper
+// interfaces.
 type DTS[T any] struct {
 	dtm com.DTM
 	m   mus.Marshaller[T]
@@ -25,7 +26,7 @@ type DTS[T any] struct {
 	sk  mus.Skipper
 }
 
-// DTM returns the value with which DTS was initialized.
+// DTM returns the value used to initialize DTS.
 func (d DTS[T]) DTM() com.DTM {
 	return d.dtm
 }
