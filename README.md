@@ -1,4 +1,9 @@
 # mus-dts-go
+
+[![Go Reference](https://pkg.go.dev/badge/github.com/mus-format/mus-dts-go.svg)](https://pkg.go.dev/github.com/mus-format/mus-dts-go)
+[![GoReportCard](https://goreportcard.com/badge/mus-format/mus-dts-go)](https://goreportcard.com/report/github.com/mus-format/mus-dts-go)
+[![codecov](https://codecov.io/gh/mus-format/mus-dts-go/graph/badge.svg?token=VB6E8M2PFE)](https://codecov.io/gh/mus-format/mus-dts-go)
+
 mus-dts-go provides DTM support for the mus-go serializer. It allows to create
 DTS (DTM Support) for a type.
 
