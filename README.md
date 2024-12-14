@@ -4,16 +4,15 @@
 [![GoReportCard](https://goreportcard.com/badge/mus-format/mus-dts-go)](https://goreportcard.com/report/github.com/mus-format/mus-dts-go)
 [![codecov](https://codecov.io/gh/mus-format/mus-dts-go/graph/badge.svg?token=VB6E8M2PFE)](https://codecov.io/gh/mus-format/mus-dts-go)
 
-mus-dts-go provides DTM support for the mus-go serializer. It allows to create
-DTS (DTM Support) for a type.
+mus-dts-go provides [DTM](https://medium.com/p/21d7be309e8d) support for the 
+mus-go serializer.
 
-DTSs are useful when there is a need to deserialize data, but we don't know in 
-advance what type it is. For example, it could be `Foo` or `Bar` (or it could be
-just different versions of the same data, like `FooV1` or `FooV2`), we just 
-don't know, but want to handle both of these cases.
+DTS is useful when you need to deserialize data with an unpredictable type, 
+which, for example, can denote completely different types, such as `Foo` and 
+`Bar`, or different versions of the same data, such as `FooV1` and `FooV2`.
 
-DTS encode/decode DTM (which is just a number) + data itself. Thanks to DTM, we 
-can distinguish one type of data from another, let's see how:
+DTS encode/decode DTM (which is just a number) + data itself. Thanks to DTM, one
+type can be distinguished from another, let's see how:
 ```go
 package main
 
@@ -25,7 +24,7 @@ import (
 	"github.com/mus-format/mus-go"
 )
 
-// First of all, we have to define DTMs, unique DTM for each type.
+// Define DTMs, unique DTM for each type.
 const (
 	FooDTM = iota + 1
 	BarDTM
@@ -34,7 +33,7 @@ const (
 type Foo struct{...}
 type Bar struct{..}
 
-// Then define Marshal/Unmarshal/Size/Skip functions.
+// Define Marshal/Unmarshal/Size/Skip functions.
 func MarshalFooMUS(f Foo, bs []byte) (n int) {...}
 func UnmarshalFooMUS(bs []byte) (f Foo, n int, err error) {...}
 func SizeFooMUS(v Foo) (size int) {...}
@@ -45,7 +44,7 @@ func UnmarshalBarMUS(bs []byte) (b Bar, n int, err error) {...}
 func SizeBarMUS(b Bar) (size int) {...}
 func SkipBarMUS(bs []byte) (n int, err error) {...}
 
-// And only now we can define DTSs.
+// Create DTSs.
 var FooDTS = dts.New[Foo](FooDTM, 
   mus.MarshallerFn[Foo](MarshalFooMUS),
   mus.UnmarshallerFn[Foo](UnmarshalFooMUS),
@@ -60,17 +59,17 @@ var BarDTS = dts.New[Bar](BarDTM,
 )
 
 func main() {
-  // Let's make a random data
+  // Make a random data ...
   bs, err := randomData()
   if err != nil {
     panic(err)
   }
-  // and Unmarshal DTM.
+  // .. and Unmarshal DTM.
   dtm, n, err := dts.UnmarshalDTM(bs)
   if err != nil {
     panic(err)
   }
-  // Now we can deserialize and process data depending on the DTM.
+  // Deserialize and process data depending on the DTM.
   switch dtm {
     case FooDTM:
       foo, _, err := FooDTS.UnmarshalData(bs[n:])
@@ -104,6 +103,3 @@ func randomData() (bs []byte) {
 }
 ```
 A full example can be found at [mus-examples-go](https://github.com/mus-format/mus-examples-go/tree/main/dts)
-
-# Tests
-Test coverage is 100%.
