@@ -5,14 +5,15 @@
 [![codecov](https://codecov.io/gh/mus-format/mus-dts-go/graph/badge.svg?token=VB6E8M2PFE)](https://codecov.io/gh/mus-format/mus-dts-go)
 
 mus-dts-go provides [DTM](https://medium.com/p/21d7be309e8d) support for the 
-mus-go serializer.
+mus-go serializer (DTS stands for Data Type Metadata Support).
 
-DTS is useful when you need to deserialize data with an unpredictable type, 
-which, for example, can denote completely different types, such as `Foo` and 
-`Bar`, or different versions of the same data, such as `FooV1` and `FooV2`.
+mus-dts-go is useful when deserializing data with an unpredictable type. This 
+could include completely different types, such as `Foo` and `Bar`, or different 
+versions of the same data, such as `FooV1` and `FooV2`.
 
-DTS encode/decode DTM (which is just a number) + data itself. Thanks to DTM, one
-type can be distinguished from another, let's see how:
+It encodes and decodes a DTM (which is simply a number) along with the data 
+itself. Using the DTM, one type can easily be distinguished from another. Let’s 
+see how:
 ```go
 package main
 
