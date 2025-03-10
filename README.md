@@ -17,11 +17,11 @@ one type to be easily distinguished from another. Let’s see how:
 package main
 
 import (
-	"math/rand"
+  "math/rand"
 
-	com "github.com/mus-format/common-go"
-	dts "github.com/mus-format/mus-dts-go"
-	"github.com/mus-format/mus-go"
+  com "github.com/mus-format/common-go"
+  dts "github.com/mus-format/mus-dts-go"
+  "github.com/mus-format/mus-go"
 )
   
 type Foo struct{...}
@@ -29,49 +29,49 @@ type Bar struct{..}
 
 // DTM (Data Type Metadata) definitions.
 const (
-	FooDTM com.DTM = iota + 1
-	BarDTM
+  FooDTM com.DTM = iota + 1
+  BarDTM
 )
 
 // Serializers.
 var (
-	FooMUS = ...
-	BarMUS = ...
+  FooMUS = ...
+  BarMUS = ...
 )
 
 // DTS (Data Type metadata Support) definitions.
 var (
-	FooDTS = dts.New[Foo](FooDTM, FooMUS)
-	BarDTS = dts.New[Bar](BarDTM, BarMUS)
+  FooDTS = dts.New[Foo](FooDTM, FooMUS)
+  BarDTS = dts.New[Bar](BarDTM, BarMUS)
 )
 
 func main() {
-	// Make a random data and Unmarshal DTM.
-	bs := randomData()
-	dtm, n, err := dts.DTMSer.Unmarshal(bs)
-	if err != nil {
-		panic(err)
-	}
+  // Make a random data and Unmarshal DTM.
+  bs := randomData()
+  dtm, n, err := dts.DTMSer.Unmarshal(bs)
+  if err != nil {
+    panic(err)
+  }
 
-	// Deserialize and process data depending on the DTM.
-	switch dtm {
-	case FooDTM:
-		foo, _, err := FooDTS.UnmarshalData(bs[n:])
-		if err != nil {
-			panic(err)
-		}
-		// process foo ...
-		fmt.Println(foo)
-	case BarDTM:
-		bar, _, err := BarDTS.UnmarshalData(bs[n:])
-		if err != nil {
-			panic(err)
-		}
-		// process bar ...
-		fmt.Println(bar)
-	default:
-		panic(fmt.Sprintf("unexpected %v DTM", dtm))
-	}
+  // Deserialize and process data depending on the DTM.
+  switch dtm {
+  case FooDTM:
+    foo, _, err := FooDTS.UnmarshalData(bs[n:])
+    if err != nil {
+      panic(err)
+    }
+    // process foo ...
+    fmt.Println(foo)
+  case BarDTM:
+    bar, _, err := BarDTS.UnmarshalData(bs[n:])
+    if err != nil {
+      panic(err)
+    }
+    // process bar ...
+    fmt.Println(bar)
+  default:
+    panic(fmt.Sprintf("unexpected %v DTM", dtm))
+  }
 }
 }
 
