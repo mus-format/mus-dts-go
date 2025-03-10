@@ -4,65 +4,18 @@ import (
 	"reflect"
 	"testing"
 
-	com "github.com/mus-format/common-go"
+	"github.com/mus-format/mus-dts-go/testdata"
 	"github.com/mus-format/mus-go"
-	"github.com/mus-format/mus-go/ord"
-	"github.com/mus-format/mus-go/varint"
 )
-
-const FooDTM com.DTM = 1
-
-type Foo struct {
-	num int
-	str string
-}
-
-func MarshalFoo(foo Foo, bs []byte) (n int) {
-	n = varint.MarshalInt(foo.num, bs)
-	n += ord.MarshalString(foo.str, nil, bs[n:])
-	return
-}
-
-func UnmarshalFoo(bs []byte) (foo Foo, n int, err error) {
-	foo.num, n, err = varint.UnmarshalInt(bs)
-	if err != nil {
-		return
-	}
-	var n1 int
-	foo.str, n1, err = ord.UnmarshalString(nil, bs[n:])
-	n += n1
-	return
-}
-
-func SizeFoo(foo Foo) (size int) {
-	size = varint.SizeInt(foo.num)
-	return size + ord.SizeString(foo.str, nil)
-}
-
-func SkipFoo(bs []byte) (n int, err error) {
-	n, err = varint.SkipInt(bs)
-	if err != nil {
-		return
-	}
-	var n1 int
-	n1, err = ord.SkipString(nil, bs[n:])
-	n += n1
-	return
-}
 
 func TestDTS(t *testing.T) {
 
 	t.Run("Marshal, Unmarshal, Size, Skip methods should work correctly",
 		func(t *testing.T) {
 			var (
-				foo    = Foo{num: 11, str: "hello world"}
-				fooDTS = New[Foo](FooDTM,
-					mus.MarshallerFn[Foo](MarshalFoo),
-					mus.UnmarshallerFn[Foo](UnmarshalFoo),
-					mus.SizerFn[Foo](SizeFoo),
-					mus.SkipperFn(SkipFoo),
-				)
-				bs = make([]byte, fooDTS.Size(foo))
+				foo    = testdata.Foo{Num: 11, Str: "hello world"}
+				fooDTS = New[testdata.Foo](testdata.FooDTM, testdata.FooSer)
+				bs     = make([]byte, fooDTS.Size(foo))
 			)
 			n := fooDTS.Marshal(foo, bs)
 			if n != len(bs) {
@@ -92,28 +45,23 @@ func TestDTS(t *testing.T) {
 		func(t *testing.T) {
 			var (
 				wantDTSize = 1
-				foo        = Foo{num: 11, str: "hello world"}
-				fooDTS     = New[Foo](FooDTM,
-					mus.MarshallerFn[Foo](MarshalFoo),
-					mus.UnmarshallerFn[Foo](UnmarshalFoo),
-					mus.SizerFn[Foo](SizeFoo),
-					mus.SkipperFn(SkipFoo),
-				)
-				bs = make([]byte, fooDTS.Size(foo))
+				foo        = testdata.Foo{Num: 11, Str: "hello world"}
+				fooDTS     = New[testdata.Foo](testdata.FooDTM, testdata.FooSer)
+				bs         = make([]byte, fooDTS.Size(foo))
 			)
 			n := fooDTS.Marshal(foo, bs)
 			if n != len(bs) {
 				t.Fatalf("unexpected n, want '%v' actual '%v'", len(bs), n)
 			}
-			dtm, n, err := UnmarshalDTM(bs)
+			dtm, n, err := DTMSer.Unmarshal(bs)
 			if err != nil {
 				t.Errorf("unexpected error, want '%v' actual '%v'", nil, err)
 			}
 			if n != wantDTSize {
 				t.Errorf("unexpected n, want '%v' actual '%v'", 1, n)
 			}
-			if dtm != FooDTM {
-				t.Errorf("unexpected dtm, want '%v' actual '%v'", FooDTM, dtm)
+			if dtm != testdata.FooDTM {
+				t.Errorf("unexpected dtm, want '%v' actual '%v'", testdata.FooDTM, dtm)
 			}
 			afoo, n1, err := fooDTS.UnmarshalData(bs[n:])
 			if err != nil {
@@ -126,7 +74,7 @@ func TestDTS(t *testing.T) {
 				t.Errorf("unexpected afoo, want '%v' actual '%v'", foo, afoo)
 			}
 			fooDTS.Marshal(foo, bs)
-			n, err = SkipDTM(bs)
+			n, err = DTMSer.Skip(bs)
 			if err != nil {
 				t.Errorf("unexpected error, want '%v' actual '%v'", nil, err)
 			}
@@ -141,11 +89,11 @@ func TestDTS(t *testing.T) {
 
 	t.Run("DTM method should return correct DTM", func(t *testing.T) {
 		var (
-			fooDTS = New[Foo](FooDTM, nil, nil, nil, nil)
+			fooDTS = New[testdata.Foo](testdata.FooDTM, nil)
 			dtm    = fooDTS.DTM()
 		)
-		if dtm != FooDTM {
-			t.Errorf("unexpected dtm, want '%v' actual '%v'", FooDTM, dtm)
+		if dtm != testdata.FooDTM {
+			t.Errorf("unexpected dtm, want '%v' actual '%v'", testdata.FooDTM, dtm)
 		}
 	})
 
@@ -153,14 +101,14 @@ func TestDTS(t *testing.T) {
 		func(t *testing.T) {
 			var (
 				wantDTSize  = 1
-				bs          = []byte{byte(FooDTM) + 3}
-				fooDTS      = New[Foo](FooDTM, nil, nil, nil, nil)
+				bs          = []byte{byte(testdata.FooDTM) + 3}
+				fooDTS      = New[testdata.Foo](testdata.FooDTM, nil)
 				foo, n, err = fooDTS.Unmarshal(bs)
 			)
 			if err != ErrWrongDTM {
 				t.Errorf("unexpected error, want '%v' actual '%v'", ErrWrongDTM, err)
 			}
-			if !reflect.DeepEqual(foo, Foo{}) {
+			if !reflect.DeepEqual(foo, testdata.Foo{}) {
 				t.Errorf("unexpected foo, want '%v' actual '%v'", nil, foo)
 			}
 			if n != wantDTSize {
@@ -172,8 +120,8 @@ func TestDTS(t *testing.T) {
 		func(t *testing.T) {
 			var (
 				wantDTSize = 1
-				bs         = []byte{byte(FooDTM) + 3}
-				fooDTS     = New[Foo](FooDTM, nil, nil, nil, nil)
+				bs         = []byte{byte(testdata.FooDTM) + 3}
+				fooDTS     = New[testdata.Foo](testdata.FooDTM, nil)
 				n, err     = fooDTS.Skip(bs)
 			)
 			if err != ErrWrongDTM {
@@ -188,7 +136,7 @@ func TestDTS(t *testing.T) {
 		func(t *testing.T) {
 			var (
 				bs          = []byte{}
-				fooDTS      = New[Foo](FooDTM, nil, nil, nil, nil)
+				fooDTS      = New[testdata.Foo](testdata.FooDTM, nil)
 				foo, n, err = fooDTS.Unmarshal(bs)
 			)
 			if err != mus.ErrTooSmallByteSlice {
@@ -196,7 +144,7 @@ func TestDTS(t *testing.T) {
 					mus.ErrTooSmallByteSlice,
 					err)
 			}
-			if !reflect.DeepEqual(foo, Foo{}) {
+			if !reflect.DeepEqual(foo, testdata.Foo{}) {
 				t.Errorf("unexpected foo, want '%v' actual '%v'", nil, foo)
 			}
 			if n != 0 {
@@ -208,7 +156,7 @@ func TestDTS(t *testing.T) {
 		func(t *testing.T) {
 			var (
 				bs     = []byte{}
-				fooDTS = New[Foo](FooDTM, nil, nil, nil, nil)
+				fooDTS = New[testdata.Foo](testdata.FooDTM, nil)
 				n, err = fooDTS.Skip(bs)
 			)
 			if err != mus.ErrTooSmallByteSlice {
@@ -221,11 +169,11 @@ func TestDTS(t *testing.T) {
 			}
 		})
 
-	t.Run("If varint.UnmarshalPositiveInt fails with an error, UnmarshalDTM should return it",
+	t.Run("If varint.PositiveInt.Unmarshal fails with an error, UnmarshalDTM should return it",
 		func(t *testing.T) {
 			var (
 				bs          = []byte{}
-				dtm, n, err = UnmarshalDTM(bs)
+				dtm, n, err = DTMSer.Unmarshal(bs)
 			)
 			if err != mus.ErrTooSmallByteSlice {
 				t.Errorf("unexpected error, want '%v' actual '%v'",

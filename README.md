@@ -7,13 +7,12 @@
 mus-dts-go provides [DTM](https://medium.com/p/21d7be309e8d) support for the 
 mus-go serializer (DTS stands for Data Type Metadata Support).
 
-mus-dts-go is useful when deserializing data with an unpredictable type. This 
-could include completely different types, such as `Foo` and `Bar`, or different 
-versions of the same data, such as `FooV1` and `FooV2`.
+mus-dts-go is particularly useful when deserializing data with an unpredictable 
+type. This could include completely different types, such as `Foo` and `Bar`, or
+different versions of the same data, such as `FooV1` and `FooV2`.
 
-It encodes and decodes a DTM (which is simply a number) along with the data 
-itself. Using the DTM, one type can easily be distinguished from another. Let’s 
-see how:
+It encodes a DTM (which is simply a number) along with the data itself, allowing 
+one type to be easily distinguished from another. Let’s see how:
 ```go
 package main
 
@@ -24,83 +23,58 @@ import (
 	dts "github.com/mus-format/mus-dts-go"
 	"github.com/mus-format/mus-go"
 )
-
-// Define DTMs, unique DTM for each type.
-const (
-	FooDTM = iota + 1
-	BarDTM
-)
-
+  
 type Foo struct{...}
 type Bar struct{..}
 
-// Define Marshal/Unmarshal/Size/Skip functions.
-func MarshalFooMUS(f Foo, bs []byte) (n int) {...}
-func UnmarshalFooMUS(bs []byte) (f Foo, n int, err error) {...}
-func SizeFooMUS(v Foo) (size int) {...}
-func SkipFooMUS(bs []byte) (n int, err error) {...}
-
-func MarshalBarMUS(b Bar, bs []byte) (n int) {...}
-func UnmarshalBarMUS(bs []byte) (b Bar, n int, err error) {...}
-func SizeBarMUS(b Bar) (size int) {...}
-func SkipBarMUS(bs []byte) (n int, err error) {...}
-
-// Create DTSs.
-var FooDTS = dts.New[Foo](FooDTM, 
-  mus.MarshallerFn[Foo](MarshalFooMUS),
-  mus.UnmarshallerFn[Foo](UnmarshalFooMUS),
-  mus.SizerFn[Foo](SizeFooMUS),
-  mus.Skipper(SkipFooMUS),
+// DTM (Data Type Metadata) definitions.
+const (
+	FooDTM com.DTM = iota + 1
+	BarDTM
 )
-var BarDTS = dts.New[Bar](BarDTM, 
-  mus.MarshallerFn[Bar](MarshalBarMUS),
-  mus.UnmarshallerFn[Bar](UnmarshalBarMUS),
-  mus.SizerFn[Bar](SizeBarMUS),
-  mus.Skipper(SkipBarMUS),
+
+// Serializers.
+var (
+	FooMUS = ...
+	BarMUS = ...
+)
+
+// DTS (Data Type metadata Support) definitions.
+var (
+	FooDTS = dts.New[Foo](FooDTM, FooMUS)
+	BarDTS = dts.New[Bar](BarDTM, BarMUS)
 )
 
 func main() {
-  // Make a random data ...
-  bs, err := randomData()
-  if err != nil {
-    panic(err)
-  }
-  // .. and Unmarshal DTM.
-  dtm, n, err := dts.UnmarshalDTM(bs)
-  if err != nil {
-    panic(err)
-  }
-  // Deserialize and process data depending on the DTM.
-  switch dtm {
-    case FooDTM:
-      foo, _, err := FooDTS.UnmarshalData(bs[n:])
-      // process foo ...
-    case BarDTM:
-      bar, _, err := BarDTS.UnmarshalData(bs[n:])
-      // process bar ...
-    default:
-      panic(fmt.Sprintf("unexpected %v DTM", dtm))
-  }
+	// Make a random data and Unmarshal DTM.
+	bs := randomData()
+	dtm, n, err := dts.DTMSer.Unmarshal(bs)
+	if err != nil {
+		panic(err)
+	}
+
+	// Deserialize and process data depending on the DTM.
+	switch dtm {
+	case FooDTM:
+		foo, _, err := FooDTS.UnmarshalData(bs[n:])
+		if err != nil {
+			panic(err)
+		}
+		// process foo ...
+		fmt.Println(foo)
+	case BarDTM:
+		bar, _, err := BarDTS.UnmarshalData(bs[n:])
+		if err != nil {
+			panic(err)
+		}
+		// process bar ...
+		fmt.Println(bar)
+	default:
+		panic(fmt.Sprintf("unexpected %v DTM", dtm))
+	}
+}
 }
 
-func randomData() (bs []byte) {
-  // Generate random DTM
-  dtm := com.DTM(rand.Intn(2) + 1)
-  switch dtm {
-    // Marshal Foo
-    case FooDTM:
-      foo := Foo{...}
-      bs = make([]byte, FooDTS.Size(foo))
-      FooDTS.Marshal(foo, bs)
-    // Marshal Bar
-    case BarDTM:
-      bar := Bar{...}
-      bs = make([]byte, BarDTS.Size(bar))
-      BarDTS.Marshal(bar, bs)
-    default:
-      panic(fmt.Sprintf("unexpected %v DTM", dtm))      
-  }
-  return
-}
+func randomData() (bs []byte) {...}
 ```
 A full example can be found at [mus-examples-go](https://github.com/mus-format/mus-examples-go/tree/main/dts)

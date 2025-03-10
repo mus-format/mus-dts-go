@@ -6,35 +6,26 @@ import (
 )
 
 // New creates a new DTS.
-func New[T any](dtm com.DTM, m mus.Marshaller[T], u mus.Unmarshaller[T],
-	s mus.Sizer[T],
-	sk mus.Skipper,
-) DTS[T] {
-	return DTS[T]{dtm, m, u, s, sk}
+func New[T any](dtm com.DTM, ser mus.Serializer[T]) DTS[T] {
+	return DTS[T]{dtm, ser}
 }
 
-// DTS provides data type metadata (DTM) support for the mus-go serializer. It
-// helps to encode/decode DTM + data.
-//
-// Implements mus.Marshaller, mus.Unmarshaller, mus.Sizer and mus.Skipper
-// interfaces.
+// DTM implements the mus.Serializer interface and provides DTM support for the
+// mus-go serializer. It helps to serializer DTM + data.
 type DTS[T any] struct {
 	dtm com.DTM
-	m   mus.Marshaller[T]
-	u   mus.Unmarshaller[T]
-	s   mus.Sizer[T]
-	sk  mus.Skipper
+	ser mus.Serializer[T]
 }
 
-// DTM returns the value used to initialize DTS.
+// DTM returns the initialization value.
 func (d DTS[T]) DTM() com.DTM {
 	return d.dtm
 }
 
 // Marshal marshals DTM + data.
 func (d DTS[T]) Marshal(t T, bs []byte) (n int) {
-	n = MarshalDTM(d.dtm, bs)
-	n += d.m.Marshal(t, bs[n:])
+	n = DTMSer.Marshal(d.dtm, bs)
+	n += d.ser.Marshal(t, bs[n:])
 	return
 }
 
@@ -42,7 +33,7 @@ func (d DTS[T]) Marshal(t T, bs []byte) (n int) {
 //
 // Returns ErrWrongDTM if the unmarshalled DTM differs from the d.DTM().
 func (d DTS[T]) Unmarshal(bs []byte) (t T, n int, err error) {
-	dtm, n, err := UnmarshalDTM(bs)
+	dtm, n, err := DTMSer.Unmarshal(bs)
 	if err != nil {
 		return
 	}
@@ -58,15 +49,15 @@ func (d DTS[T]) Unmarshal(bs []byte) (t T, n int, err error) {
 
 // Size calculates the size of the DTM + data.
 func (d DTS[T]) Size(t T) (size int) {
-	size = SizeDTM(d.dtm)
-	return size + d.s.Size(t)
+	size = DTMSer.Size(d.dtm)
+	return size + d.ser.Size(t)
 }
 
 // Skip skips DTM + data.
 //
 // Returns ErrWrongDTM if the unmarshalled DTM differs from the d.DTM().
 func (d DTS[T]) Skip(bs []byte) (n int, err error) {
-	dtm, n, err := UnmarshalDTM(bs)
+	dtm, n, err := DTMSer.Unmarshal(bs)
 	if err != nil {
 		return
 	}
@@ -75,17 +66,17 @@ func (d DTS[T]) Skip(bs []byte) (n int, err error) {
 		return
 	}
 	var n1 int
-	n1, err = d.sk.Skip(bs[n:])
+	n1, err = d.ser.Skip(bs[n:])
 	n += n1
 	return
 }
 
 // UnmarshalData unmarshals only data.
 func (d DTS[T]) UnmarshalData(bs []byte) (t T, n int, err error) {
-	return d.u.Unmarshal(bs)
+	return d.ser.Unmarshal(bs)
 }
 
 // SkipData skips only data.
 func (d DTS[T]) SkipData(bs []byte) (n int, err error) {
-	return d.sk.Skip(bs)
+	return d.ser.Skip(bs)
 }
