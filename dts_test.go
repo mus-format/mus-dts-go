@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/mus-format/mus-dts-go/testdata"
+	"github.com/mus-format/dts-go/testdata"
 	"github.com/mus-format/mus-go"
 )
 
