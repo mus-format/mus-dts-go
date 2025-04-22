@@ -1,13 +1,13 @@
-# mus-dts-go
+# dts-go
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/mus-format/mus-dts-go.svg)](https://pkg.go.dev/github.com/mus-format/mus-dts-go)
-[![GoReportCard](https://goreportcard.com/badge/mus-format/mus-dts-go)](https://goreportcard.com/report/github.com/mus-format/mus-dts-go)
-[![codecov](https://codecov.io/gh/mus-format/mus-dts-go/graph/badge.svg?token=VB6E8M2PFE)](https://codecov.io/gh/mus-format/mus-dts-go)
+[![Go Reference](https://pkg.go.dev/badge/github.com/mus-format/dts-go.svg)](https://pkg.go.dev/github.com/mus-format/dts-go)
+[![GoReportCard](https://goreportcard.com/badge/mus-format/dts-go)](https://goreportcard.com/report/github.com/mus-format/dts-go)
+[![codecov](https://codecov.io/gh/mus-format/dts-go/graph/badge.svg?token=VB6E8M2PFE)](https://codecov.io/gh/mus-format/dts-go)
 
-mus-dts-go provides [DTM](https://medium.com/p/21d7be309e8d) support for the 
-mus-go serializer (DTS stands for Data Type Metadata Support).
+dts-go provides [DTM](https://medium.com/p/21d7be309e8d) support for the mus-go 
+serializer (DTS stands for Data Type Metadata Support).
 
-mus-dts-go is particularly useful when deserializing data with an unpredictable 
+dts-go is particularly useful when deserializing data with an unpredictable 
 type. This could include completely different types, such as `Foo` and `Bar`, or
 different versions of the same data, such as `FooV1` and `FooV2`.
 
@@ -20,7 +20,7 @@ import (
   "math/rand"
 
   com "github.com/mus-format/common-go"
-  dts "github.com/mus-format/mus-dts-go"
+  dts "github.com/mus-format/dts-go"
   "github.com/mus-format/mus-go"
 )
   
