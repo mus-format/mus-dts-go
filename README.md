@@ -5,7 +5,7 @@
 [![codecov](https://codecov.io/gh/mus-format/dts-go/graph/badge.svg?token=VB6E8M2PFE)](https://codecov.io/gh/mus-format/dts-go)
 
 dts-go provides [DTM](https://medium.com/p/21d7be309e8d) support for the mus-go 
-serializer (DTS stands for Data Type Metadata Support).
+serializer (DTS stands for Data Type metadata Support).
 
 dts-go is particularly useful when deserializing data with an unpredictable 
 type. This could include completely different types, such as `Foo` and `Bar`, or
